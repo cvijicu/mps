@@ -5,11 +5,27 @@
 
 using namespace std;
 
-int moving_average_openmp(const Samples&, const vector<int>&,
-    Samples&)
+int moving_average_openmp(const Samples& x, const vector<int>& w, Samples& y)
 {
-    // TODO: use one parallel region, record its team size, distribute outputs
-    // TODO: use omp for schedule(runtime) and keep each window sum local.
-    cerr << "Error: complete the TODO in average/openmp.cpp (moving_average_openmp).\n";
-    exit(1);
+    int num_workers = 1;
+    int m = y.size();
+
+    #pragma omp parallel shared(num_workers)
+    {
+        // Jedna nit belezi stvarnu velicinu tima
+        #pragma omp single
+        num_workers = omp_get_num_threads();
+
+        // Iteracije spoljasnje petlje se dele izmedju niti prema OMP_SCHEDULE / zadatom rasporedu
+        #pragma omp for schedule(runtime)
+        for (int i = 0; i < m; ++i)
+        {
+            double sum = 0.0; // Lokalna promenljiva za sumu, svaka nit ima svoju kopiju
+            for (int j = 0; j < w[i]; ++j)
+            {
+                sum += x[i + j];
+            }
+            y[i] = sum / w[i]; // Svaki izlaz upisuje tacno jedna nit, tako da nema potrebe za dodatnom sinhronizacijom
+        }
+    }
 }

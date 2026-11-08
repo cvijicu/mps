@@ -1,0 +1,110 @@
+Notes #3 — OpenMP
+
+PARALELNI REGION I NITI
+-----------------------
+#pragma omp parallel
+- Formira paralelni region i pokreće tim niti.
+- main (pozivajuća) nit postaje član tima.
+- Niti se identifikuju ID-jevima od 0 do broja niti - 1.
+- omp_get_thread_num() vraća ID trenutno izvršavajuće niti (ne ukupan broj niti).
+- omp_get_num_threads() vraća ukupan broj niti u trenutnom timu.
+
+num_threads(N)
+- Zahteva formiranje tima sa N niti, ali stvarni broj niti može zavisiti od OpenMP runtime-a i njegovih podešavanja.
+- Ako nije navedeno, broj niti određuju runtime i podešavanja okruženja (npr. OMP_NUM_THREADS). Često je povezan sa brojem procesorskih jezgara, ali nije garantovano da će biti jednak njemu.
+
+DELJENJE PROMENLJIVIH
+---------------------
+- Promenljive deklarisane unutar paralelnog bloka (sa automatskim lokalnim opsegom) uglavnom su privatne za svaku nit.
+- Promenljive definisane izvan paralelnog regiona po pravilu su shared, osim ako se drugačije ne odredi.
+- shared(...) eksplicitno navodi promenljive koje su zajedničke svim nitima.
+- shared promenljiva može biti izvor race condition-a ako je više niti istovremeno menja bez sinhronizacije.
+
+SINHRONIZACIJA I BARIJERE
+--------------------------
+- Na kraju parallel region-a postoji implicitna barijera: niti završavaju region pre nego što se izvršavanje nastavi nakon njega.
+- Barijera može postojati i na kraju pojedinih OpenMP konstrukcija, npr. omp for.
+- Barijera čeka da sve niti iz tima stignu do nje.
+- Raspodela posla i sinhronizacija su važne jer čekanje može smanjiti performanse.
+
+#pragma omp critical
+- Kritična sekcija: samo jedna nit u datom trenutku može izvršavati njen sadržaj.
+- Ponaša se kao sinhronizacija pomoću zaključavanja (lock/mutex).
+- Može biti spora kada mnogo niti često ulazi u sekciju.
+
+#pragma omp atomic
+- Omogućava atomsku obradu određene jednostavne operacije nad shared lokacijom, npr. sum += value.
+- Operacija se izvršava kao nedeljiva celina u odnosu na druge konkurentne pristupe toj lokaciji.
+- Ima užu primenu od critical, ali često manji overhead.
+- Nije isto što i „atomic blok“: sintaksa se koristi nad podržanom pojedinačnom naredbom, ne nad proizvoljnim blokom {}.
+- I dalje može doći do nadmetanja niti za istu memorijsku lokaciju i do troškova koherencije keša.
+
+REDUCTION
+---------
+#pragma omp parallel reduction(+:sum)
+- Svaka nit dobija privatnu kopiju promenljive sum.
+- Niti računaju svoje parcijalne rezultate nezavisno.
+- Na kraju regiona OpenMP automatski kombinuje parcijalne vrednosti u originalnu promenljivu.
+- Obično je efikasnija od critical/atomic kada se sabira veliki broj vrednosti, jer se zajednička promenljiva ne ažurira pri svakoj iteraciji.
+- Reduction podržava različite operatore, npr. +, *, min/max (u skladu sa OpenMP pravilima).
+
+PARALELIZACIJA FOR PETLJE
+-------------------------
+#pragma omp parallel for
+- Kombinuje parallel i for.
+- Iteracije petlje raspodeljuju se između niti.
+- Svaka iteracija se izvršava jednom, ali redosled izvršavanja nije garantovan.
+- Postoji implicitna barijera na kraju, osim ako se koristi nowait gde je dozvoljeno.
+
+SCHEDULE
+--------
+schedule(static)
+- Iteracije se unapred raspodeljuju između niti.
+- Bez navedenog chunk-a, raspodela je približno ravnomerna.
+
+schedule(static, 4)
+- Iteracije se raspoređuju u blokove (chunk-ove) od po 4 iteracije.
+- Blokovi se dodeljuju nitima ciklično (round-robin), a ne tako što se ceo posao podeli na 4 jednaka dela.
+
+schedule(static, 1)
+- Iteracije se dodeljuju pojedinačno, ciklično između niti.
+- Primer za 3 niti:
+  Iteracije: 0 1 2 3 4 5 6
+  Niti:      p0 p1 p2 p0 p1 p2 p0
+- Može biti korisno kada iteracije imaju različito trajanje, ali može pogoršati lokalnost pristupa memoriji.
+
+schedule(dynamic)
+- Iteracije se dodeljuju u blokovima dok niti završavaju prethodni posao.
+- Ako chunk nije naveden, podrazumevana veličina chunk-a je 1.
+- Može bolje balansirati opterećenje, ali ima overhead raspoređivanja.
+
+schedule(runtime)
+- Raspored se bira u vreme izvršavanja na osnovu promenljive okruženja OMP_SCHEDULE.
+- Omogućava promenu rasporeda bez ponovnog kompajliranja.
+
+#pragma omp single
+- Samo jedna nit iz tima izvršava naredni blok.
+- Ostale niti preskaču taj blok.
+- Na kraju single konstrukcije postoji implicitna barijera, osim ako se koristi nowait.
+
+PERFORMANSE I ZAPAŽANJA
+-----------------------
+1. Zašto više niti može usporiti kratak proračun?
+   Trošak formiranja/aktiviranja tima niti, raspodele iteracija i sinhronizacije može biti veći od vremena koje se uštedi paralelnim računanjem.
+
+2. Koja lokacija se stalno menja kod atomskog sabiranja, a gde se čuvaju parcijalni rezultati redukcije?
+   Kod atomic sabiranja stalno se ažurira zajednička promenljiva sum. Kod reduction svaka nit čuva parcijalnu sumu privatno, a rezultati se kombinuju na kraju.
+
+3. Zašto ravnomernija podela rada ne mora dati kraće vreme?
+   Dinamička ili ciklična raspodela može poboljšati balans opterećenja, ali uvodi overhead raspoređivanja i može pogoršati lokalnost pristupa memoriji. Dobitak od boljeg balansa zato ne mora nadmašiti dodatne troškove.
+
+4. Da li je paralelni direktni postupak brži od kliznog sekvencijalnog?
+   Zavisi od merenja, ali klizni sekvencijalni postupak često može biti brži jer obavlja manje računskog posla. Izbor efikasnijeg algoritma može biti važniji od paralelizacije manje efikasnog algoritma.
+
+5. Zašto reduction obično radi bolje od critical/atomic pri sabiranju?
+   Niti računaju lokalne parcijalne sume, pa se shared promenljiva ne ažurira pri svakoj iteraciji. Critical i atomic mogu dovesti do nadmetanja za istu lokaciju i troškova sinhronizacije/koherencije keša.
+
+Napomena o kešu:
+- Kada više niti ažurira istu shared lokaciju, može doći do nadmetanja i saobraćaja zbog koherencije keša.
+- Ako niti rade na različitim jezgrima, keš linija koja sadrži tu lokaciju može se prenositi između jezgara.
+- Ovo može ograničiti skaliranje, čak i kada se koristi atomic umesto critical.
