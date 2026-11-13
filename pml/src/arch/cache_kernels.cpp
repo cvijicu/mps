@@ -4,16 +4,26 @@
 
 using namespace std;
 
-Sum sum_rows(const Matrix&, int)
+Sum sum_rows(const Matrix& a, int n)
 {
     // TODO: visit rows; the inner loop changes the column index.
-    cerr << "Error: complete sum_rows in arch/cache_kernels.cpp.\n";
-    exit(1);
+    Sum sum = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            sum += a[i * n + j];
+        }
+    }
+    return sum;
 }
 
-Sum sum_columns(const Matrix&, int)
+Sum sum_columns(const Matrix& a, int n)
 {
     // TODO: visit columns; the inner loop changes the row index.
-    cerr << "Error: complete sum_columns in arch/cache_kernels.cpp.\n";
-    exit(1);
+    Sum sum = 0;
+    for (int j = 0; j < n; ++j) {
+        for (int i = 0; i < n; ++i) {
+            sum += a[i * n + j];
+        }
+    }
+    return sum;
 }
