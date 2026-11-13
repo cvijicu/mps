@@ -1,0 +1,2 @@
+checks=passed cases=3
+checks=passed cases=18

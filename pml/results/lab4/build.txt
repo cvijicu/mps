@@ -1,0 +1,2 @@
+g++ -O3 -Wall -Wextra src/arch/locality.cpp src/arch/cache_kernels.cpp -o src/locality
+g++ -O3 -Wall -Wextra -pthread -DPML_LINE_BYTES=64 src/arch/false_sharing.cpp -o src/false_sharing
