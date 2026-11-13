@@ -1,0 +1,14 @@
+- U jednu kes liniju ne ide po jedan bajt, vec iskljucivo citava linija od vise bajtova (uglavnom 64B).
+
+Dve mogucnosti:
+1. Prolaz kroz matricu po redovima
+2. Prolaz kroz matricu po kolonama
+
+- Prolaz po redovima definitivno brzi, po kolonama znacajno sporiji.
+
+Lazno deljenje: Svaka nit svoj element, ali su elementi u istoj liniji, pa jedna drugu koci.
+Brojac: 8B, dopuna preostalih 56B, ako je linija velicine 64B.
+
+- Razlicit hardver, razlicite velicine L1, L2 i L3 kesa.
+
+Poredjenje: Odnos prolaska po redovima i kolonama, daje faktor lokalnosti, u oznaci R.
