@@ -1,0 +1,5 @@
+checks=passed cases=3
+compiler=15.2.0 n=512 element_bytes=4 array_bytes=1048576 checksum=-26 repetitions=5 warmups=1
+row mean_s=0.000770965 min_s=0.000762998 max_s=0.000777205
+column mean_s=0.000894523 min_s=0.000794197 max_s=0.00126637
+csv=/home/cvijic_uros/private/mps/pml/results/lab4_change5/run_02.csv

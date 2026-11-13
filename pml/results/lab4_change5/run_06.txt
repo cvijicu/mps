@@ -1,0 +1,15 @@
+checks=passed cases=18
+layout=compact id=0 address=103444396095056 line=1616318688985 offset=16
+layout=compact id=1 address=103444396095064 line=1616318688985 offset=24
+layout=compact id=2 address=103444396095072 line=1616318688985 offset=32
+layout=compact id=3 address=103444396095080 line=1616318688985 offset=40
+layout=compact counter_size=8 line_bytes_assumed=64 lock_free=1 shared_lines=1
+layout=padded id=0 address=103444396095424 line=1616318688991 offset=0
+layout=padded id=1 address=103444396095488 line=1616318688992 offset=0
+layout=padded id=2 address=103444396095552 line=1616318688993 offset=0
+layout=padded id=3 address=103444396095616 line=1616318688994 offset=0
+layout=padded counter_size=64 line_bytes_assumed=64 lock_free=1 shared_lines=0
+compiler=15.2.0 workers=4 iterations=1000000 total_updates=4000000 repetitions=5 warmups=1
+compact mean_s=0.0223057 min_s=0.0207681 max_s=0.0253463
+padded mean_s=0.00241231 min_s=0.00203273 max_s=0.00259258
+csv=/home/cvijic_uros/private/mps/pml/results/lab4_change5/run_06.csv

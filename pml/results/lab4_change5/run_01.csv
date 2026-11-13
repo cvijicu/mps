@@ -1,0 +1,11 @@
+method,workload,n,workers,repetition,position,time_s,checksum,elements,element_bytes,line_size,counter_size,lock_free,shared_lines
+row,locality,128,1,1,1,6.5130999999999997e-05,-26,16384,4,0,0,0,0
+column,locality,128,1,1,2,4.7799000000000001e-05,-26,16384,4,0,0,0,0
+column,locality,128,1,2,1,4.7759000000000001e-05,-26,16384,4,0,0,0,0
+row,locality,128,1,2,2,4.7788999999999999e-05,-26,16384,4,0,0,0,0
+row,locality,128,1,3,1,4.7749e-05,-26,16384,4,0,0,0,0
+column,locality,128,1,3,2,4.7709e-05,-26,16384,4,0,0,0,0
+column,locality,128,1,4,1,4.7809000000000003e-05,-26,16384,4,0,0,0,0
+row,locality,128,1,4,2,4.7749e-05,-26,16384,4,0,0,0,0
+row,locality,128,1,5,1,4.7768000000000001e-05,-26,16384,4,0,0,0,0
+column,locality,128,1,5,2,4.7778000000000002e-05,-26,16384,4,0,0,0,0
