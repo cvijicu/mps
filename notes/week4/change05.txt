@@ -1,0 +1,36 @@
+Promena 5: Kompajliranje sa -O0
+
+Predvidjanje: column_over_row je mnogo manji nego u slucaju -O3 optimizacije.
+
+- N = 512: oko 1 do 1,5 tj. gotovo isto vreme za oba prolaza.
+- N = 2048: oko 2 do 3, prolaz po kolonama je i dalje sporiji.
+
+Objasnjenje:
+
+- Sa -O3 je prolaz po redovima vektorizovan i time izuzetno brz, a kolone su takve da se ne mogu vektorizovati.
+  Odatle potice ogroman odnos (u mojoj seriji 12,6 za N = 512 i 42,9 za N = 2048).
+- Sa -O0 nema vektorizacije ni za jedan prolaz. Svaka promenljiva se stalno cita i upisuje u memoriju, stoga
+  prolaz po redovima postaje dosta sporiji (sa 0,65 ms na nekoliko ms za N = 2048).
+- Kolone cekaju na linije kesa (korak 4*N bajtova), a to -O0 ne menja. Zato njihovo vreme (27,8 ms za N = 2048)
+  ostaje priblizno isto, ali sada oba prolaza imaju mnogo "obicnog" posla po elementu, pa su promasaji kesa manje
+  izrazeni.
+- Za N = 512 (1 MiB, sto je priblizno velicini L2) razlika u kesu je mala, pa je odnos blizi 1.
+
+Izmereno:
+
+- N = 512: column_over_row = 1,06 (sa -O3 je 12,6). Predvidjanje (1 do 1,5) je pogodjeno.
+- N = 2048: column_over_row = 2,06 (sa -O3 je 42,9). Odnos je mnogo manji nego sa -O3, kao sto je predvidjeno,
+  a prolaz po kolonama je i dalje sporiji.
+
+Objasnjenje razlike:
+
+- Prolaz po kolonama se skoro nije promenio (N = 2048: 26,1 ms naspram 27,8 ms). Njega usporavaju promasaji 
+  kesa (korak 8192 B), a to -O0 ne menja.
+- Prolaz po redovima je postao mnogo sporiji (N = 2048: sa 0,65 ms na 12,6 ms, oko 19 puta). Bez vektorizacije
+  i sa promenljivama u memoriji, svaki element trosi oko 3 ns, pa je prolaz ogranicen racunanjem, a ne kesom.
+- Zato je prednost prolaza po redovima nestala: oba prolaza sada traju slicno, a kolone su sporije jos samo za
+  oko 2 puta.
+- N = 512: matrica (1 MiB) je oko velicine L2, pa kolone nemaju veliku kaznu, a redovi su usporeni -O0, odatle 
+  odnos oko 1. Rasponi min-max se preklapaju (red 0,77 do 1,08 ms, kolona 0,78 do 1,30 ms), pa se razlika ne moze 
+  razlikovati od sumnje.
+- N = 2048: rasponi se ne preklapaju (12,2 do 13,9 ms naspram 25,0 do 26,8 ms), pa je razlika stvarna.
