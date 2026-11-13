@@ -14,6 +14,18 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+paths = sorted(args.directory.glob('run_*.csv'))
+if paths:
+    with paths[0].open() as stream:
+        columns = next(csv.reader(stream), [])
+    if 'element_bytes' in columns:
+        from cache_plots import plot_cache
+        try:
+            plot_cache(args.directory)
+        except (KeyError, ValueError) as error:
+            sys.exit(str(error))
+        sys.exit(0)
+
 groups = defaultdict(list)
 for path in sorted(args.directory.glob('run_*.csv')):
     with path.open() as stream:
